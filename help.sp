@@ -13,6 +13,7 @@ public Plugin myinfo =
 };
 
 int g_spawnTimes[MAXPLAYERS];
+float g_fRandomTimeInterval = 60.0;
 
 public void OnPluginStart()
 {
@@ -23,6 +24,8 @@ public void OnPluginStart()
 
     for(int i = 0; i < MAXPLAYERS; i++)
         g_spawnTimes[i] = 0;
+
+    CreateTimer(g_fRandomTimeInterval, Timer_MessageSender, _, TIMER_REPEAT);
 }
 
 public void OnClientAuthorized(int client)
@@ -60,22 +63,12 @@ public void OnClientPutInServer(int client)
     PrintToChatAll(" \x06Welcome \x03%s\x06! connected from \x0E%s\x06.", name, country);
 }
 
-public void OnClientDisconnect(int client)
-{
-    if(IsFakeClient(client)) return;
 
-    char leaveName[MAX_NAME_LENGTH];
-
-    GetClientName(client, leaveName, sizeof(leaveName));
-    PrintToChatAll("%s left from the server Q_Q", leaveName);
-
-    g_spawnTimes[client] = 0;
-}
 
 Action OnPlayerSpawn(Event event, char[] name, bool dontBroadcast)
 {
     int client = GetClientOfUserId(event.GetInt("userid"));
-    if(IsFakeClient(client)) return;
+    if(IsFakeClient(client)) Plugin_Handled;
 
     g_spawnTimes[client]++;
 
@@ -85,12 +78,13 @@ Action OnPlayerSpawn(Event event, char[] name, bool dontBroadcast)
     }
     // else
     //     UnhookEvent(name, OnPlayerSpawn, EventHookMode_Post);
+    return Plugin_Continue;
 }
 
 Action OnPlayerDisconnect(Event event, char[] name, bool dontBroadcast)
 {
     int client = GetClientOfUserId(event.GetInt("userid"));
-    if(IsFakeClient(client)) return;
+    if(IsFakeClient(client)) return Plugin_Handled;
 
     char leaveReason[64];
     char playerName[64];
@@ -110,11 +104,15 @@ Action OnPlayerDisconnect(Event event, char[] name, bool dontBroadcast)
     LogMessage("%s (%s) - %s disconnected. (%s)", playerName, playerID, playerIP, leaveReason);
     if(!IsClientInGame(client))
         UnhookEvent(name, OnPlayerDisconnect);
+
+    PrintToChatAll("%s left from the server Q_Q", playerName);
+
+    return Plugin_Continue;
 }
 
 Action HelpCmd(int client, int args)
 {
-    int randomSeed = GetRandomFloat()
+    PrintToChat(client, " \x06Server command: \x02!res\x06, \x02!luck");
     return Plugin_Continue;
 }
 
@@ -127,5 +125,31 @@ Action Timer_Respawn(Handle timer, int client)
     
     GetClientName(client, playerName, sizeof(playerName));
     PrintToChat(client, " \x06Hello \x0E%s! \x06Welcome to %s ^_^", playerName, hostname);
-    PrintToChat(client, " \x06Please be friendly, remember: \x02admin's watching you fap!");
+    //PrintToChat(client, " \x06Please be friendly, remember: \x02admin's watching you fap!");
+    return Plugin_Continue;
+}
+
+Action Timer_MessageSender(Handle timer)
+{
+    g_fRandomTimeInterval = GetRandomFloat(60.0, 120.0);
+
+    int randomSeed = GetRandomInt(0, 3);
+    
+    switch(randomSeed)
+    {
+        case 0:
+            PrintToChatAll("Useful command: !res, !luck");
+        case 1:
+            PrintToChatAll("Server has no host routine yet :<");
+        case 2:
+            PrintToChatAll("Server has no rule, be friendly and have fun ^_^");
+        case 3:
+            PrintToChatAll(" \x06Hint: you can cost \x09800$ \x06to revive once by typing \x02!res");
+        case 4:
+            PrintToChatAll(" \x06Hint: typing \x02!luck \x06can throw a dice once, it has 60 seconds cooldown.");
+        default:
+            PrintToChatAll("Type !help to display server command.");
+    }
+
+    return Plugin_Continue;
 }
