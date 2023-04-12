@@ -436,14 +436,14 @@ void GiveBotWeapon(int client)
                     char weaponName[32];
                     
                     GetClientWeapon(client, weaponName, sizeof(weaponName));
-                    if(!StrEqual(weaponName, "weapon_m4a1"))
+                    if(!StrEqual(weaponName, "weapon_famas"))
                     {
                         CS_DropWeapon(client, mainWeapon, false);
-                        GivePlayerItem(client, "weapon_m4a1");
+                        GivePlayerItem(client, "weapon_famas");
                     }
                 }
                 else
-                    GivePlayerItem(client, "weapon_m4a1");
+                    GivePlayerItem(client, "weapon_famas");
             }
             else if(GetClientTeam(client) == CS_TEAM_T)
             {
@@ -452,14 +452,14 @@ void GiveBotWeapon(int client)
                     char weaponName[32];
                     
                     GetClientWeapon(client, weaponName, sizeof(weaponName));
-                    if(!StrEqual(weaponName, "weapon_ak47"))
+                    if(!StrEqual(weaponName, "weapon_galil"))
                     {
                         CS_DropWeapon(client, mainWeapon, false);
-                        GivePlayerItem(client, "weapon_ak47");
+                        GivePlayerItem(client, "weapon_galil");
                     }
                 }
                 else
-                    GivePlayerItem(client, "weapon_ak47");
+                    GivePlayerItem(client, "weapon_galil");
             }
         }
     }
