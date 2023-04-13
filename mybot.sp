@@ -32,58 +32,59 @@ public Plugin myinfo =
 
 public void OnPluginStart()
 {
-    g_playerNum = 0;
+    Handle_HUD = CreateHudSynchronizer();
     RegConsoleCmd("sm_info", Command_Info, "information");
     HookEvent("round_start", OnRoundStart);
     HookEvent("round_end", OnRoundEnd);
     HookEvent("bomb_planted", OnMissionGoing);
     HookEvent("hostage_follows", OnMissionGoing);
     HookEvent("player_death", OnPlayerDeath);
-
     AddCommandListener(CMD_BlockBotDropWpn, "drop");
-
-    Handle_HUD = CreateHudSynchronizer();
+    PrintToServer("BOT plugin on start");
 }
 
 public void OnMapStart()
 {
+    PrintToServer("BOT plugin on map start");
     char mapFile[32];
-
+    
+    g_roundNum = 0;
     GetCurrentMap(mapFile, 32);
     RemoveMapPath(mapFile, g_mapName, 32);
-    g_roundNum = 0;
     g_playerTeamIndex = 0;
     g_winningStreak = 0;
     g_loosingStreak = 0;
     g_botRespawningTimes = 20;
     
-    ServerCommand("bot_join_after_player 1");
+    
     // ServerCommand("mp_randomspawn 0");
-
+    //ServerCommand("bot_join_after_player 0");
     if(g_mapName[0] == 'd' && g_mapName[1] == 'e')
     {
         g_playerTeamIndex = CS_TEAM_T;
         g_notMissionMap = false;
         ServerCommand("mp_humanteam T");
-        ServerCommand("bot_join_team CT");
+        //ServerCommand("bot_join_team CT");
     }
     else if(g_mapName[0] == 'c' && g_mapName[1] == 's')
     {
         g_playerTeamIndex = CS_TEAM_CT;
         g_notMissionMap = false;
         ServerCommand("mp_humanteam CT");
-        ServerCommand("bot_join_team T");
+        //ServerCommand("bot_join_team T");
     }
     else
     {
         g_notMissionMap = true;
         g_botRespawningTimes = 0;
         ServerCommand("mp_humanteam CT");
-        ServerCommand("bot_join_team T");
+        //ServerCommand("bot_join_team T");
         LogMessage("NOT A STANDARD MISSION MAP!");
     }
+    
+
     ServerCommand("bot_difficulty 0");
-    ServerCommand("bot_quota 15");
+    //ServerCommand("bot_quota 15");
 }
 
 
@@ -93,8 +94,9 @@ Action Command_Info(int client, int args)
     int difficultyNum = GetConVarInt(botDifficulty);
 
     PrintToChat(client, "Map: %s", g_mapName);
-    PrintToChat(client, "Players: %d", g_playerNum);
-    
+    PrintToChat(client, "Player(s): %d", g_playerNum);
+    PrintToChat(client, "Round: %d", g_roundNum);
+
     switch(difficultyNum)
     {
         case 0:
@@ -120,6 +122,8 @@ Action OnRoundStart(Event event, const char[] name, bool dontBroadcast)
     
     g_playerNum = 0;
     g_isRoundEnd = false;
+    
+    PrintToServer("g_roundNum++ / %d", g_roundNum);
 
     if(g_notMissionMap)
         g_botRespawningTimes = 0;
@@ -132,22 +136,27 @@ Action OnRoundStart(Event event, const char[] name, bool dontBroadcast)
             g_playerNum++;
     }
 
-    if(g_roundNum == 0)
+    if(GameRules_GetProp("m_bWarmupPeriod") == 1)
     {
-        ServerCommand("mp_warmuptime 60");
+        ServerCommand("bot_kick");
+        InitSpecialBot();
         ServerCommand("sm_cvar bot_stop 1");
-
-        for(int i = 1; i < MAXPLAYERS; i++)
-        {
-            if(IsClientConnected(i) && IsClientInGame(i) && IsPlayerAlive(i))
-                SetEntProp(i, Prop_Data, "m_takedamage", 0, 1);
-        }
+        
+        /**
+         * I don't want everyone kills each other in warmup. 
+         * by default, there is protection in the begin of warmup then goes dysfunction automatically
+         * so I use Timer here to make protection works again till next round, the game starts
+         */
+        CreateTimer(3.0, Timer_WarmupProtection);
     }
-    else if(g_roundNum > 0 && g_roundNum < 9)
+    else
+        g_roundNum++;
+
+    if(g_roundNum > 0 && g_roundNum < 9)
     {
         int difficultyNum = GetConVarInt(botDifficulty);
 
-        ServerCommand("sm_cvar bot_stop 0");
+        ServerCommand("bot_quota_mode fill");
 
         for(int i = 1; i < MAXPLAYERS; i++)
         {
@@ -162,15 +171,15 @@ Action OnRoundStart(Event event, const char[] name, bool dontBroadcast)
         switch(difficultyNum)
         {
             case 0:
-                PrintToChatAll("Difficulty: Easy (Level %d)", difficultyNum); // easy
+                PrintToChatAll("Difficulty: Easy (Level %d)", difficultyNum);
             case 1:
-                PrintToChatAll("Difficulty: Normal (Level %d)", difficultyNum); // fair
+                PrintToChatAll("Difficulty: Normal (Level %d)", difficultyNum);
             case 2:
-                PrintToChatAll("Difficulty: Hard (Level %d)", difficultyNum); // normal
+                PrintToChatAll("Difficulty: Hard (Level %d)", difficultyNum);
             case 3:
-                PrintToChatAll("Difficulty: Expert (Level %d)", difficultyNum); // tough
+                PrintToChatAll("Difficulty: Expert (Level %d)", difficultyNum);
             default:
-                PrintToChatAll("Difficulty: Unknown (Level %d)", difficultyNum); // hard
+                PrintToChatAll("Difficulty: Unknown (Level %d)", difficultyNum);
         }
 
         PrintToChatAll("Rounds: %d", g_roundNum);
@@ -179,14 +188,20 @@ Action OnRoundStart(Event event, const char[] name, bool dontBroadcast)
         
         Handle_HUDTimer = CreateTimer(0.5, Timer_HUD, _, TIMER_REPEAT);
     }
-    
-    if(g_roundNum == 9)
+    else if(g_roundNum == 9)
     {
         ServerCommand("sm_cvar bot_stop 1");
+
+        /**
+         * this timing idk
+         */
+        // int playerTeamScore = 0;
+
+        // playerTeamScore = GetTeamScore(g_playerTeamIndex);
+        // SetTeamScore(g_playerTeamIndex, playerTeamScore - 1);
+
         EndGame();
     }
-
-    g_roundNum++;
 
     return Plugin_Continue;
 }
@@ -242,6 +257,7 @@ Action OnPlayerDeath(Event event, char[] name, bool dontBroadcast)
     return Plugin_Continue;
 }
 
+
 void EndGame() // force end game will make end game vote won't be fired
 {
     // https://developer.valvesoftware.com/wiki/Game_end
@@ -265,9 +281,6 @@ void EndGame() // force end game will make end game vote won't be fired
     //     AcceptEntityInput(iGameEnd, "EndGame");
         
     // }
-    // int playerScore = 0;
-
-    // playerScore = GetTeamScore(g_playerTeamIndex);
     
     for(int i = 1; i < MaxClients; i++)
     {
@@ -275,7 +288,6 @@ void EndGame() // force end game will make end game vote won't be fired
             ForcePlayerSuicide(i);
     }
     
-    //SetTeamScore(g_playerTeamIndex, playerScore - 1);
     ServerCommand("sm_cvar bot_stop 1");
 }
 
@@ -296,7 +308,7 @@ void SetDifficulty(int difficultyNum, ConVar botDifficulty)
         }
     }
     
-    ServerCommand("bot_quota 15");
+    //ServerCommand("bot_quota 15");
 }
 
 Action Timer_Respawn(Handle timer, int client)
@@ -320,6 +332,18 @@ Action Timer_HUD(Handle timer)
     return Plugin_Continue;
 }
 
+Action Timer_WarmupProtection(Handle timer)
+{
+    for(int i = 1; i < MaxClients; i++)
+    {
+        PrintToChatAll(" \x02FUCK");
+        if(IsClientConnected(i) && IsClientInGame(i) && IsPlayerAlive(i))
+        {
+            SetEntProp(i, Prop_Data, "m_takedamage", 0, 1);
+        }
+    }
+    return Plugin_Continue;
+}
 
 void GiveBotWeapon(int client)
 {
@@ -479,6 +503,33 @@ bool IsSpecialBot(int client)
     }
 
     return false;
+}
+
+void InitSpecialBot()
+{
+    
+    if(g_playerTeamIndex == CS_TEAM_CT)
+    {
+        ServerCommand("bot_add_t [ELITE]EagleEye");
+        ServerCommand("bot_add_t [ELITE]mimic");
+        ServerCommand("bot_add_t [2]Rush");
+        ServerCommand("bot_add_ct [ZAKO]Helper1");
+        ServerCommand("bot_add_ct [ZAKO]Helper2");
+        ServerCommand("bot_add_ct [ZAKO]Helper3");
+        ServerCommand("bot_add_ct [ZAKO]Helper4");
+        ServerCommand("bot_add_ct [ZAKO]Helper5");
+    }
+    else if(g_playerTeamIndex == CS_TEAM_T)
+    {
+        ServerCommand("bot_add_ct [ELITE]EagleEye");
+        ServerCommand("bot_add_ct [ELITE]mimic");
+        ServerCommand("bot_add_ct [2]Rush");
+        ServerCommand("bot_add_t [ZAKO]Helper1");
+        ServerCommand("bot_add_t [ZAKO]Helper2");
+        ServerCommand("bot_add_t [ZAKO]Helper3");
+        ServerCommand("bot_add_t [ZAKO]Helper4");
+        ServerCommand("bot_add_t [ZAKO]Helper5");
+    }
 }
 
 public Action CMD_BlockBotDropWpn(int client, const char[] command, int argc)
