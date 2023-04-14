@@ -100,7 +100,7 @@ Action Command_Info(int client, int args)
     switch(difficultyNum)
     {
         case 0:
-            PrintToChatAll("Difficulty: Noob (Level %d)", difficultyNum);
+            PrintToChatAll("Difficulty: Easy (Level %d)", difficultyNum);
         case 1:
             PrintToChatAll("Difficulty: Normal (Level %d)", difficultyNum);
         case 2:
@@ -156,7 +156,7 @@ Action OnRoundStart(Event event, const char[] name, bool dontBroadcast)
     {
         int difficultyNum = GetConVarInt(botDifficulty);
 
-        ServerCommand("bot_quota_mode fill");
+        ServerCommand("sm_cvar bot_stop 0");
 
         for(int i = 1; i < MAXPLAYERS; i++)
         {
@@ -202,6 +202,8 @@ Action OnRoundStart(Event event, const char[] name, bool dontBroadcast)
 
         EndGame();
     }
+
+    SetSpecialBotScore();
 
     return Plugin_Continue;
 }
@@ -314,7 +316,7 @@ void SetDifficulty(int difficultyNum, ConVar botDifficulty)
 Action Timer_Respawn(Handle timer, int client)
 {
     CS_RespawnPlayer(client);
-    if(g_roundNum > 2)
+    if(g_roundNum > 1)
         GiveBotWeapon(client);
     g_botRespawningTimes--;
 
@@ -336,7 +338,6 @@ Action Timer_WarmupProtection(Handle timer)
 {
     for(int i = 1; i < MaxClients; i++)
     {
-        PrintToChatAll(" \x02FUCK");
         if(IsClientConnected(i) && IsClientInGame(i) && IsPlayerAlive(i))
         {
             SetEntProp(i, Prop_Data, "m_takedamage", 0, 1);
@@ -434,7 +435,7 @@ void GiveBotWeapon(int client)
                         GivePlayerItem(client, "weapon_ak47");
                 }
             }
-            else if(StrEqual(botName, "[★★★]Rush"))
+            else if(StrEqual(botName, "[EXPERT]Rush"))
             {
                 if(mainWeapon != -1)
                     {
@@ -491,7 +492,7 @@ void GiveBotWeapon(int client)
 
 bool IsSpecialBot(int client)
 {
-    char names[3][] = {"[ELITE]EagleEye", "[ELITE]mimic", "[★★★]Rush"};
+    char names[8][] = {"[ELITE]EagleEye", "[ELITE]mimic", "[EXPERT]Rush", "[ZAKO]Helper1", "[ZAKO]Helper2", "[ZAKO]Helper3", "[ZAKO]Helper4", "[ZAKO]Helper5"};
     char botName[32];
     
     GetClientName(client, botName, sizeof(botName));
@@ -512,7 +513,7 @@ void InitSpecialBot()
     {
         ServerCommand("bot_add_t [ELITE]EagleEye");
         ServerCommand("bot_add_t [ELITE]mimic");
-        ServerCommand("bot_add_t [2]Rush");
+        ServerCommand("bot_add_t [EXPERT]Rush");
         ServerCommand("bot_add_ct [ZAKO]Helper1");
         ServerCommand("bot_add_ct [ZAKO]Helper2");
         ServerCommand("bot_add_ct [ZAKO]Helper3");
@@ -523,12 +524,38 @@ void InitSpecialBot()
     {
         ServerCommand("bot_add_ct [ELITE]EagleEye");
         ServerCommand("bot_add_ct [ELITE]mimic");
-        ServerCommand("bot_add_ct [2]Rush");
+        ServerCommand("bot_add_ct [EXPERT]Rush");
         ServerCommand("bot_add_t [ZAKO]Helper1");
         ServerCommand("bot_add_t [ZAKO]Helper2");
         ServerCommand("bot_add_t [ZAKO]Helper3");
         ServerCommand("bot_add_t [ZAKO]Helper4");
         ServerCommand("bot_add_t [ZAKO]Helper5");
+    }
+}
+
+void SetSpecialBotScore()
+{
+    for(int i = 1; i < MaxClients; i++)
+    {
+        if(IsClientInGame(i) && IsFakeClient(i) && IsSpecialBot(i))
+        {
+            char botName[32];
+
+            GetClientName(i, botName, sizeof(botName));
+            
+            if(StrEqual(botName, "[ELITE]mimic"))
+            {
+                Client_SetScore(i, 9999);
+            }
+            else if(StrEqual(botName, "[ELITE]EagleEye"))
+            {
+                Client_SetScore(i, 8888);
+            }
+            else if(StrEqual(botName, "[EXPERT]Rush"))
+            {
+                Client_SetScore(i, 7777);
+            }
+        }
     }
 }
 
