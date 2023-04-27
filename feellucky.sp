@@ -175,6 +175,8 @@ public Action Command_Lucky(int client, int args)
 
 public Action Timer_Cooldown(Handle timer, int client)
 {
+    if(Handle_Cooldown != timer) Handle_Cooldown = timer;
+
     if(cooldown[client] <= 0 && IsClientInGame(client))
     {
         PrintHintText(client, "You can try your luck again!");
@@ -182,10 +184,13 @@ public Action Timer_Cooldown(Handle timer, int client)
     }
     
     --cooldown[client];
+
+    return Plugin_Continue;
 }
 
 public Action Timer_Godmode(Handle timer, int client)
 {
+    if(Handle_Godmode != timer) Handle_Godmode = timer;
     char name[32];
 
     GetClientName(client, name, sizeof(name));
@@ -205,10 +210,12 @@ public Action Timer_Godmode(Handle timer, int client)
     }
 
     --godmode_duration;
+    return Plugin_Continue;
 }
 
 public Action Timer_Noclip(Handle timer, int client)
 {
+    if(Handle_Noclip != timer) Handle_Noclip = timer;
     char name[32];
 
     GetClientName(client, name, sizeof(name));
@@ -233,10 +240,12 @@ public Action Timer_Noclip(Handle timer, int client)
     }
 
     --noclip_duration;
+    return Plugin_Continue;
 }
 
 public Action Timer_Infinite(Handle timer, int client)
 {
+    if(Handle_Infinite != timer) Handle_Infinite = timer;
     char name[32];
     
     GetClientName(client, name, sizeof(name));    
@@ -253,10 +262,12 @@ public Action Timer_Infinite(Handle timer, int client)
     }
 
     --infinite_duration;
+    return Plugin_Continue;
 }
 
 public Action Timer_Speedup(Handle timer, int client)
 {
+    if(Handle_Speedup != timer) Handle_Speedup = timer;
     char name[32];
 
     GetClientName(client, name, sizeof(name));
@@ -272,10 +283,12 @@ public Action Timer_Speedup(Handle timer, int client)
     }
 
     --speedup_duration;
+    return Plugin_Continue;
 }
 
 public Action Timer_Speeddown(Handle timer, int client)
 {
+    if(Handle_Speeddown != timer) Handle_Speeddown = timer;
     char name[32];
 
     GetClientName(client, name, sizeof(name));
@@ -291,10 +304,12 @@ public Action Timer_Speeddown(Handle timer, int client)
     }
 
     --speeddown_duration;
+    return Plugin_Continue;
 }
 
-public Action Timer_Regenrate(Handle timer, int client)
+public Action Timer_Regenerate(Handle timer, int client)
 {
+    if(Handle_Regenerate != timer) Handle_Regenerate = timer;
     char name[32];
     int player_health = GetClientHealth(client);
     int health = GetConVarInt(cvar_regenerate_amount);
@@ -312,10 +327,12 @@ public Action Timer_Regenrate(Handle timer, int client)
     }
 
     --regenerate_duration;
+    return Plugin_Continue;
 }
 
 public Action Timer_God(Handle timer, int client)
 {
+    if(Handle_God != timer) Handle_God = timer;
     char name[32];
 
     GetClientName(client, name, sizeof(name));
@@ -338,6 +355,7 @@ public Action Timer_God(Handle timer, int client)
     }
 
     --god_duration;
+    return Plugin_Continue;
 }
 
 public Action Hook_OnDamage(int victim, int &attacker, int &inflictor, float &damage, int &damagetype)
@@ -364,6 +382,7 @@ public Action Event_WeaponFire(Event event, const char[] name, bool dontBroadcas
     int ammo = GetEntProp(current_weapon, Prop_Data, "m_iClip1") + 1;
 
     SetEntProp(current_weapon, Prop_Data, "m_iClip1", ammo);
+    return Plugin_Continue;
 }
 
 stock bool CheckIfPlayerIsStuck(client)
@@ -580,7 +599,7 @@ void OnDicing(int client, bool isAdmin, int arg1, int arg2)
         regenerate_duration = GetConVarInt(cvar_regenerate);
         PrintToChatAll("%s now knows how to regenerate his HP.", name);
         isBusy = true;
-        Handle_Regenerate = CreateTimer(1.0, Timer_Regenrate, client, TIMER_REPEAT);
+        Handle_Regenerate = CreateTimer(1.0, Timer_Regenerate, client, TIMER_REPEAT);
     }
     else if(first_dice == 2 && second_dice == 6)
     {
