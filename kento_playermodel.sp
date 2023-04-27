@@ -293,42 +293,62 @@ void LoadConfig()
 
 public void N_ArmsFix_OnClientReady(int client)
 {
+	char botName[32];
+
+	GetClientName(client, botName, sizeof(botName));
+
 	if (IsValidClient(client))
 	{
 		switch (GetClientTeam(client))
 		{
 			case CS_TEAM_T:
 			{
-				if(IsFakeClient(client) || TSelected[client] < 0)
+				//(IsFakeClient(client) || TSelected[client] < 0) && 
+				if(StrEqual(botName, "[ELITE]mimic"))
 				{
-					// int rand = GetRandomInt(0, TSkins_Count-1);
-					// SetEntPropString(client, Prop_Send, "m_szArmsModel", TerrorArms[ rand ]);
-					// SetEntityModel(client, TerrorSkin[ rand ] );
+					int rand = GetRandomInt(0, TSkins_Count-1);
+					SetEntPropString(client, Prop_Send, "m_szArmsModel", TerrorArms[ rand ]);
+					SetEntityModel(client, TerrorSkin[ rand ] );
 				}
-				else 
+				else if(StrEqual(botName, "[ELITE]EagleEye"))
 				{
-					if(TSelected[client] > -1) 
-					{
-						SetEntPropString(client, Prop_Send, "m_szArmsModel", TerrorArms[ TSelected[client] ]);
-						SetEntityModel(client, TerrorSkin[ TSelected[client] ]);
-					}
-				}	
+					// if(TSelected[client] > -1) 
+					// {
+					// 	SetEntPropString(client, Prop_Send, "m_szArmsModel", TerrorArms[ TSelected[client] ]);
+					// 	SetEntityModel(client, TerrorSkin[ TSelected[client] ]);
+					// }
+					SetEntityModel(client, "models/player/custom_player/resident/hunk/hunk.mdl");
+        			SetEntPropString(client, Prop_Send, "m_szArmsModel", "models/weapons/ct_arms_st6.mdl");
+				}
+				else if(StrEqual(botName, "[EXPERT]Rush"))
+				{
+					SetEntityModel(client, "models/player/custom_player/kuristaja/knuckles/knuckles.mdl");
+        			SetEntPropString(client, Prop_Send, "m_szArmsModel", "models/weapons/ct_arms_st6.mdl");
+				}
 			}
 			case CS_TEAM_CT:
 			{
-				if(IsFakeClient(client) || CTSelected[client] < 0)
+				//(IsFakeClient(client) || CTSelected[client] < 0) && 
+				if(StrEqual(botName, "[ELITE]mimic"))
 				{
-					// int rand = GetRandomInt(0, CTSkins_Count-1);
-					// SetEntPropString(client, Prop_Send, "m_szArmsModel", CTerrorArms[ rand ]);
-					// SetEntityModel(client, CTerrorSkin[ rand ]);
+					int rand = GetRandomInt(0, CTSkins_Count-1);
+					SetEntPropString(client, Prop_Send, "m_szArmsModel", CTerrorArms[ rand ]);
+					SetEntityModel(client, CTerrorSkin[ rand ]);
 				}
-				else 
+				else if(StrEqual(botName, "[ELITE]EagleEye"))
 				{
-					if(CTSelected[client] > -1) 
-					{
-						SetEntPropString(client, Prop_Send, "m_szArmsModel", CTerrorArms[ CTSelected[client] ]);
-						SetEntityModel(client, CTerrorSkin[ CTSelected[client] ]);
-					}
+					// 	if(CTSelected[client] > -1) 
+					// 	{
+					// 		SetEntPropString(client, Prop_Send, "m_szArmsModel", CTerrorArms[ CTSelected[client] ]);
+					// 		SetEntityModel(client, CTerrorSkin[ CTSelected[client] ]);
+					// 	}
+					SetEntityModel(client, "models/player/custom_player/resident/hunk/hunk.mdl");
+        			SetEntPropString(client, Prop_Send, "m_szArmsModel", "models/weapons/ct_arms_st6.mdl");
+				}
+				else if(StrEqual(botName, "[EXPERT]Rush"))
+				{
+					SetEntityModel(client, "models/player/custom_player/kuristaja/knuckles/knuckles.mdl");
+        			SetEntPropString(client, Prop_Send, "m_szArmsModel", "models/weapons/ct_arms_st6.mdl");
 				}	
 			}
 		}
