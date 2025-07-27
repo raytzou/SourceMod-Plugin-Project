@@ -91,7 +91,7 @@ public Action OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 	{
 		g_Is1v1 = true;
 		ResetBets();
-		ShowBetMenu(0);
+		ShowBetMenu(victim);
 	}
 
 	return Plugin_Continue;
@@ -99,18 +99,6 @@ public Action OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 
 public void ShowBetMenu(int client)
 {
-	if (client == 0)
-	{
-		for (int i = 1; i <= MaxClients; i++)
-		{
-			if (!IsValidClient(i) || IsPlayerAlive(i))
-				continue;
-
-			ShowBetMenu(i);
-		}
-		return;
-	}
-
 	if (!IsValidClient(client) || IsPlayerAlive(client))
 		return;
 
@@ -159,6 +147,11 @@ public void ShowBetMenu(int client)
 
 public int BetMenuHandler(Menu menu, MenuAction action, int client, int item)
 {
+	if (!IsValidClient(client))
+	{
+		return 0;
+	}
+
 	if (action == MenuAction_Select)
 	{
 		char info[10];
