@@ -5,11 +5,11 @@
 #include <sdkhooks>
 #include <cstrike>
 
-Handle g_BetMenu;
 bool   g_Is1v1 = false;
 int	   g_Bets[MAXPLAYERS + 1];
 int	   g_LastCT, g_LastT;
 int	   g_BetAmount[MAXPLAYERS + 1];
+Handle g_PlayerMenus[MAXPLAYERS + 1];
 
 public Plugin myinfo =
 {
@@ -24,14 +24,6 @@ public OnPluginStart()
 {
 	HookEvent("player_death", OnPlayerDeath, EventHookMode_Post);
 	HookEvent("round_end", OnRoundEnd, EventHookMode_Post);
-	CreateBetMenu();
-}
-
-public void CreateBetMenu()
-{
-	g_BetMenu = CreateMenu(BetMenuHandler);
-	SetMenuTitle(g_BetMenu, "Place Your Bet!");
-	SetMenuExitBackButton(g_BetMenu, true);
 }
 
 public Action OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
@@ -87,25 +79,29 @@ public void ShowBetMenuToDeadPlayers()
 			continue;
 		}
 
-		Handle playerMenu = CreateMenu(BetMenuHandler);
-		SetMenuTitle(playerMenu, "Place Your Bet!");
-		SetMenuExitBackButton(playerMenu, true);
+		if (g_PlayerMenus[i] != INVALID_HANDLE)
+		{
+			CloseHandle(g_PlayerMenus[i]);
+		}
+
+		g_PlayerMenus[i] = CreateMenu(BetMenuHandler);
+		SetMenuTitle(g_PlayerMenus[i], "Place Your Bet!");
+		SetMenuExitBackButton(g_PlayerMenus[i], true);
 
 		char ctName[64], tName[64];
 		GetClientName(g_LastCT, ctName, sizeof(ctName));
 		GetClientName(g_LastT, tName, sizeof(tName));
 
-		AddMenuItem(playerMenu, "t", tName, ITEMDRAW_DEFAULT);
-		AddMenuItem(playerMenu, "ct", ctName, ITEMDRAW_DEFAULT);
-
-		AddMenuItem(playerMenu, "raise", "Raise Bet 1000$", ITEMDRAW_DEFAULT);
-		AddMenuItem(playerMenu, "reduce", "Reduce Bet 1000$", ITEMDRAW_DEFAULT);
+		AddMenuItem(g_PlayerMenus[i], "ct", ctName, ITEMDRAW_DEFAULT);
+		AddMenuItem(g_PlayerMenus[i], "t", tName, ITEMDRAW_DEFAULT);
+		AddMenuItem(g_PlayerMenus[i], "raise", "Raise Bet 1000$", ITEMDRAW_DEFAULT);
+		AddMenuItem(g_PlayerMenus[i], "reduce", "Reduce Bet 1000$", ITEMDRAW_DEFAULT);
 
 		char betAmountText[64];
 		Format(betAmountText, sizeof(betAmountText), "Your bet amount: $%d", g_BetAmount[i]);
-		AddMenuItem(playerMenu, "amount", betAmountText, ITEMDRAW_DISABLED);
+		AddMenuItem(g_PlayerMenus[i], "amount", betAmountText, ITEMDRAW_DISABLED);
 
-		DisplayMenu(playerMenu, i, MENU_TIME_FOREVER);
+		DisplayMenu(g_PlayerMenus[i], i, MENU_TIME_FOREVER);
 	}
 }
 
@@ -160,7 +156,15 @@ public int BetMenuHandler(Menu menu, MenuAction action, int client, int item)
 
 public Action OnRoundEnd(Event event, const char[] name, bool dontBroadcast)
 {
-	CancelMenu(g_BetMenu);
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		if (g_PlayerMenus[i] != INVALID_HANDLE)
+		{
+			CloseHandle(g_PlayerMenus[i]);
+			g_PlayerMenus[i] = INVALID_HANDLE;
+		}
+	}
+
 	if (!g_Is1v1)
 		return Plugin_Continue;
 
