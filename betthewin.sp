@@ -186,6 +186,14 @@ public int BetMenuHandler(Menu menu, MenuAction action, int client, int item)
 			ShowBetMenu(client);
 		}
 	}
+	else if (action == MenuAction_End)
+	{
+		if (g_PlayerMenus[client] != INVALID_HANDLE)
+		{
+			CloseHandle(g_PlayerMenus[client]);
+			g_PlayerMenus[client] = INVALID_HANDLE;
+		}
+	}
 
 	return 0;
 }
