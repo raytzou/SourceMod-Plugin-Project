@@ -24,6 +24,7 @@ public Plugin myinfo =
 
 public OnPluginStart()
 {
+	init();
 	HookEvent("player_death", OnPlayerDeath, EventHookMode_Post);
 	HookEvent("round_end", OnRoundEnd, EventHookMode_Post);
 	HookEvent("round_start", OnRoundStart, EventHookMode_Post);
@@ -270,4 +271,14 @@ public void ResetBets()
 bool IsValidClient(int client)
 {
 	return client > 0 && client <= MaxClients && IsClientInGame(client);
+}
+
+void init()
+{
+	for (int i = 1; i <= MaxClients; i++)
+		g_PlayerMenus[i] = INVALID_HANDLE;
+
+	ResetBets();
+	g_Is1v1	 = false;
+	g_LastCT = g_LastT = 0;
 }
