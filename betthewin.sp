@@ -5,6 +5,8 @@
 #include <sdkhooks>
 #include <cstrike>
 
+#define DEFAULT_BET_VALUE 1000
+
 bool   g_Is1v1 = false;
 int	   g_Bets[MAXPLAYERS + 1];
 int	   g_LastCT, g_LastT;
@@ -83,7 +85,7 @@ public void ShowBetMenu(int client)
 		return;
 
 	int money = GetEntProp(client, Prop_Send, "m_iAccount");
-	if (money < 1000)
+	if (money < DEFAULT_BET_VALUE)
 	{
 		PrintToChat(client, "You don't have enough money to participate in this bet.");
 		return;
@@ -111,8 +113,12 @@ public void ShowBetMenu(int client)
 
 	AddMenuItem(g_PlayerMenus[client], "ct", ctName, ITEMDRAW_DEFAULT);
 	AddMenuItem(g_PlayerMenus[client], "t", tName, ITEMDRAW_DEFAULT);
-	AddMenuItem(g_PlayerMenus[client], "raise", "Raise Bet 1000$", ITEMDRAW_DEFAULT);
-	AddMenuItem(g_PlayerMenus[client], "reduce", "Reduce Bet 1000$", ITEMDRAW_DEFAULT);
+	char raiseDisplay[64];
+	Format(raiseDisplay, sizeof(raiseDisplay), "Raise Bet $%d", DEFAULT_BET_VALUE);
+	AddMenuItem(g_PlayerMenus[client], "raise", raiseDisplay, ITEMDRAW_DEFAULT);
+	char reduceDisplay[64];
+	Format(reduceDisplay, sizeof(reduceDisplay), "Reduce Bet $%d", DEFAULT_BET_VALUE);
+	AddMenuItem(g_PlayerMenus[client], "reduce", reduceDisplay, ITEMDRAW_DEFAULT);
 
 	char betAmountText[64];
 	Format(betAmountText, sizeof(betAmountText), "Your bet amount: $%d", g_BetAmount[client]);
@@ -141,26 +147,28 @@ public int BetMenuHandler(Menu menu, MenuAction action, int client, int item)
 		else if (StrEqual(info, "raise"))
 		{
 			int money = GetEntProp(client, Prop_Send, "m_iAccount");
-			if (g_BetAmount[client] + 1000 > money)
+			if (g_BetAmount[client] + DEFAULT_BET_VALUE > money)
 			{
 				PrintToChat(client, "You don't have enough money to raise your bet.");
 			}
 			else
 			{
-				g_BetAmount[client] += 1000;
+				g_BetAmount[client] += DEFAULT_BET_VALUE;
 				PrintToChat(client, "You raised your bet to $%d.", g_BetAmount[client]);
 			}
 			ShowBetMenu(client);
 		}
 		else if (StrEqual(info, "reduce"))
 		{
-			if (g_BetAmount[client] - 1000 < 1000)
+			if (g_BetAmount[client] - DEFAULT_BET_VALUE < DEFAULT_BET_VALUE)
 			{
-				PrintToChat(client, "You cannot reduce your bet below $1000.");
+				char reduceOutput[128];
+				Format(reduceOutput, sizeof(reduceOutput), "You cannot reduce your bet below $%d.", DEFAULT_BET_VALUE);
+				PrintToChat(client, reduceOutput);
 			}
 			else
 			{
-				g_BetAmount[client] -= 1000;
+				g_BetAmount[client] -= DEFAULT_BET_VALUE;
 				PrintToChat(client, "You reduced your bet to $%d.", g_BetAmount[client]);
 			}
 			ShowBetMenu(client);
@@ -255,7 +263,7 @@ public void ResetBets()
 	for (int i = 1; i <= MaxClients; i++)
 	{
 		g_Bets[i]	   = 0;
-		g_BetAmount[i] = 1000;	  // Reset bet amount to default
+		g_BetAmount[i] = DEFAULT_BET_VALUE;	   // Reset bet amount to default
 	}
 }
 
