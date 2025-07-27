@@ -201,6 +201,7 @@ public int BetMenuHandler(Menu menu, MenuAction action, int client, int item)
 	{
 		if (g_PlayerMenus[client] != INVALID_HANDLE)
 		{
+			PrintToChat(client, "Not this time? Your bet menu has been closed.");
 			CloseHandle(g_PlayerMenus[client]);
 			g_PlayerMenus[client] = INVALID_HANDLE;
 		}
