@@ -129,8 +129,8 @@ public void ShowBetMenu(int client)
 	GetClientName(g_LastCT, ctName, sizeof(ctName));
 	GetClientName(g_LastT, tName, sizeof(tName));
 
-	AddMenuItem(g_PlayerMenus[client], "ct", ctName, ITEMDRAW_DEFAULT);
 	AddMenuItem(g_PlayerMenus[client], "t", tName, ITEMDRAW_DEFAULT);
+	AddMenuItem(g_PlayerMenus[client], "ct", ctName, ITEMDRAW_DEFAULT);
 	char raiseDisplay[64];
 	Format(raiseDisplay, sizeof(raiseDisplay), "Raise Bet $%d", DEFAULT_BET_VALUE);
 	AddMenuItem(g_PlayerMenus[client], "raise", raiseDisplay, ITEMDRAW_DEFAULT);
