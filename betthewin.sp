@@ -30,6 +30,18 @@ public OnPluginStart()
 	HookEvent("round_start", OnRoundStart, EventHookMode_Post);
 }
 
+public void OnPluginEnd()
+{
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		if (g_PlayerMenus[i] != INVALID_HANDLE)
+		{
+			CloseHandle(g_PlayerMenus[i]);
+			g_PlayerMenus[i] = INVALID_HANDLE;
+		}
+	}
+}
+
 public Action OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 {
 	int victim = GetClientOfUserId(GetEventInt(event, "userid"));
