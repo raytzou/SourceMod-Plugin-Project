@@ -58,57 +58,66 @@ public Action OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 	{
 		g_Is1v1 = true;
 		ResetBets();
-		ShowBetMenuToDeadPlayers();
+		ShowBetMenu(0);
 	}
 
 	return Plugin_Continue;
 }
 
-public void ShowBetMenuToDeadPlayers()
+public void ShowBetMenu(int client)
 {
-	for (int i = 1; i <= MaxClients; i++)
+	if (client == 0)
 	{
-		if (!IsValidClient(i) || IsPlayerAlive(i))
-			continue;
-
-		int money = GetEntProp(i, Prop_Send, "m_iAccount");
-		if (money < 1000)
+		for (int i = 1; i <= MaxClients; i++)
 		{
-			PrintToChat(i, "You don't have enough money to participate in this bet.");
-			continue;
+			if (!IsValidClient(i) || IsPlayerAlive(i))
+				continue;
+
+			ShowBetMenu(i);
 		}
-
-		if (g_PlayerMenus[i] != INVALID_HANDLE)
-		{
-			CloseHandle(g_PlayerMenus[i]);
-			g_PlayerMenus[i] = INVALID_HANDLE;
-		}
-
-		g_PlayerMenus[i] = CreateMenu(BetMenuHandler);
-		if (g_PlayerMenus[i] == INVALID_HANDLE)
-		{
-			PrintToServer("Failed to create menu for player %d.", i);
-			continue;
-		}
-
-		SetMenuTitle(g_PlayerMenus[i], "Place Your Bet!");
-		SetMenuExitBackButton(g_PlayerMenus[i], true);
-
-		char ctName[64], tName[64];
-		GetClientName(g_LastCT, ctName, sizeof(ctName));
-		GetClientName(g_LastT, tName, sizeof(tName));
-
-		AddMenuItem(g_PlayerMenus[i], "ct", ctName, ITEMDRAW_DEFAULT);
-		AddMenuItem(g_PlayerMenus[i], "t", tName, ITEMDRAW_DEFAULT);
-		AddMenuItem(g_PlayerMenus[i], "raise", "Raise Bet 1000$", ITEMDRAW_DEFAULT);
-		AddMenuItem(g_PlayerMenus[i], "reduce", "Reduce Bet 1000$", ITEMDRAW_DEFAULT);
-
-		char betAmountText[64];
-		Format(betAmountText, sizeof(betAmountText), "Your bet amount: $%d", g_BetAmount[i]);
-		AddMenuItem(g_PlayerMenus[i], "amount", betAmountText, ITEMDRAW_DISABLED);
-
-		DisplayMenu(g_PlayerMenus[i], i, MENU_TIME_FOREVER);
+		return;
 	}
+
+	if (!IsValidClient(client) || IsPlayerAlive(client))
+		return;
+
+	int money = GetEntProp(client, Prop_Send, "m_iAccount");
+	if (money < 1000)
+	{
+		PrintToChat(client, "You don't have enough money to participate in this bet.");
+		return;
+	}
+
+	if (g_PlayerMenus[client] != INVALID_HANDLE)
+	{
+		CloseHandle(g_PlayerMenus[client]);
+		g_PlayerMenus[client] = INVALID_HANDLE;
+	}
+
+	g_PlayerMenus[client] = CreateMenu(BetMenuHandler);
+	if (g_PlayerMenus[client] == INVALID_HANDLE)
+	{
+		PrintToServer("Failed to create menu for player %d.", client);
+		return;
+	}
+
+	SetMenuTitle(g_PlayerMenus[client], "Place Your Bet!");
+	SetMenuExitBackButton(g_PlayerMenus[client], true);
+
+	char ctName[64], tName[64];
+	GetClientName(g_LastCT, ctName, sizeof(ctName));
+	GetClientName(g_LastT, tName, sizeof(tName));
+
+	AddMenuItem(g_PlayerMenus[client], "ct", ctName, ITEMDRAW_DEFAULT);
+	AddMenuItem(g_PlayerMenus[client], "t", tName, ITEMDRAW_DEFAULT);
+	AddMenuItem(g_PlayerMenus[client], "raise", "Raise Bet 1000$", ITEMDRAW_DEFAULT);
+	AddMenuItem(g_PlayerMenus[client], "reduce", "Reduce Bet 1000$", ITEMDRAW_DEFAULT);
+
+	char betAmountText[64];
+	Format(betAmountText, sizeof(betAmountText), "Your bet amount: $%d", g_BetAmount[client]);
+	AddMenuItem(g_PlayerMenus[client], "amount", betAmountText, ITEMDRAW_DISABLED);
+
+	DisplayMenu(g_PlayerMenus[client], client, MENU_TIME_FOREVER);
 }
 
 public int BetMenuHandler(Menu menu, MenuAction action, int client, int item)
@@ -140,7 +149,7 @@ public int BetMenuHandler(Menu menu, MenuAction action, int client, int item)
 				g_BetAmount[client] += 1000;
 				PrintToChat(client, "You raised your bet to $%d.", g_BetAmount[client]);
 			}
-			ShowBetMenuToDeadPlayers();
+			ShowBetMenu(client);
 		}
 		else if (StrEqual(info, "reduce"))
 		{
@@ -153,7 +162,7 @@ public int BetMenuHandler(Menu menu, MenuAction action, int client, int item)
 				g_BetAmount[client] -= 1000;
 				PrintToChat(client, "You reduced your bet to $%d.", g_BetAmount[client]);
 			}
-			ShowBetMenuToDeadPlayers();
+			ShowBetMenu(client);
 		}
 	}
 
