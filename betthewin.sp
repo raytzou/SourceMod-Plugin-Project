@@ -185,9 +185,12 @@ public Action OnRoundEnd(Event event, const char[] name, bool dontBroadcast)
 
 	for (int i = 1; i <= MaxClients; i++)
 	{
+		if (!IsValidClient(i) || g_Bets[i] == 0)
+			continue;
+		int money = GetEntProp(i, Prop_Send, "m_iAccount");
+
 		if (g_Bets[i] == winnerPlayer)
 		{
-			int money = GetEntProp(i, Prop_Send, "m_iAccount");
 			SetEntProp(i, Prop_Send, "m_iAccount", money + g_BetAmount[i]);
 			PrintToChat(i, "You won the bet! You received $%d.", g_BetAmount[i]);
 
@@ -199,6 +202,8 @@ public Action OnRoundEnd(Event event, const char[] name, bool dontBroadcast)
 		}
 		else
 		{
+			PrintToChat(i, "You lost the bet. You lost $%d.", g_BetAmount[i]);
+			SetEntProp(i, Prop_Send, "m_iAccount", money - g_BetAmount[i]);
 			totalLost += g_BetAmount[i];
 		}
 	}
