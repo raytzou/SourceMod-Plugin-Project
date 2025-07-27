@@ -207,7 +207,8 @@ public void ResetBets()
 {
 	for (int i = 1; i <= MaxClients; i++)
 	{
-		g_Bets[i] = 0;
+		g_Bets[i]	   = 0;
+		g_BetAmount[i] = 1000;	  // Reset bet amount to default
 	}
 }
 
