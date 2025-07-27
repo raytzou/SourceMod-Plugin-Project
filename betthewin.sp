@@ -28,10 +28,9 @@ public OnPluginStart()
 
 public Action OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 {
-	int attacker = GetClientOfUserId(GetEventInt(event, "attacker"));
-	int victim	 = GetClientOfUserId(GetEventInt(event, "userid"));
+	int victim = GetClientOfUserId(GetEventInt(event, "userid"));
 
-	if (!IsValidClient(attacker) || !IsValidClient(victim))
+	if (!IsValidClient(victim))
 		return Plugin_Continue;
 
 	int ctCount = 0, tCount = 0;
