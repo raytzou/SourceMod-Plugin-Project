@@ -123,7 +123,7 @@ public void ShowBetMenu(int client)
 	}
 
 	SetMenuTitle(g_PlayerMenus[client], "Place Your Bet!");
-	SetMenuExitBackButton(g_PlayerMenus[client], true);
+	SetMenuExitBackButton(g_PlayerMenus[client], false);
 
 	char ctName[64], tName[64];
 	GetClientName(g_LastCT, ctName, sizeof(ctName));
