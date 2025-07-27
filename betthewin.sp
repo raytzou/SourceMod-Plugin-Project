@@ -82,9 +82,16 @@ public void ShowBetMenuToDeadPlayers()
 		if (g_PlayerMenus[i] != INVALID_HANDLE)
 		{
 			CloseHandle(g_PlayerMenus[i]);
+			g_PlayerMenus[i] = INVALID_HANDLE;
 		}
 
 		g_PlayerMenus[i] = CreateMenu(BetMenuHandler);
+		if (g_PlayerMenus[i] == INVALID_HANDLE)
+		{
+			PrintToServer("Failed to create menu for player %d.", i);
+			continue;
+		}
+
 		SetMenuTitle(g_PlayerMenus[i], "Place Your Bet!");
 		SetMenuExitBackButton(g_PlayerMenus[i], true);
 
