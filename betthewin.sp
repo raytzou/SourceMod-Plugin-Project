@@ -209,6 +209,10 @@ public Action OnRoundEnd(Event event, const char[] name, bool dontBroadcast)
 				highestBetter = i;
 			}
 		}
+		else if (winnerPlayer == 0)
+		{
+			PrintToChat(i, "No winner this round. Return your bet of $%d.", g_BetAmount[i]);
+		}
 		else
 		{
 			PrintToChat(i, "You lost the bet. You lost $%d.", g_BetAmount[i]);
