@@ -191,12 +191,16 @@ public Action OnRoundEnd(Event event, const char[] name, bool dontBroadcast)
 
 	if (!g_Is1v1)
 		return Plugin_Continue;
+	g_Is1v1		   = false;
 
-	g_Is1v1			  = false;
+	int winnerTeam = GetEventInt(event, "winner");
+	if (winnerTeam == 0)
+	{
+		PrintToChatAll("No team won this round. Bets will be returned.");
+		return Plugin_Continue;
+	}
 
-	int winnerTeam	  = GetEventInt(event, "winner");
 	int winnerPlayer  = (winnerTeam == CS_TEAM_CT) ? g_LastCT : g_LastT;
-
 	int highestBet	  = 0;
 	int highestBetter = 0;
 	int totalLost	  = 0;
@@ -217,10 +221,6 @@ public Action OnRoundEnd(Event event, const char[] name, bool dontBroadcast)
 				highestBet	  = g_BetAmount[i];
 				highestBetter = i;
 			}
-		}
-		else if (winnerPlayer == 0)
-		{
-			PrintToChat(i, "No winner this round. Return your bet of $%d.", g_BetAmount[i]);
 		}
 		else
 		{
