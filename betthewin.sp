@@ -49,8 +49,14 @@ public void OnClientDisconnect(int client)
 		CloseHandle(g_PlayerMenus[client]);
 		g_PlayerMenus[client] = INVALID_HANDLE;
 	}
+
 	g_Bets[client]		= 0;
 	g_BetAmount[client] = DEFAULT_BET_VALUE;
+
+	if (client == g_LastCT)
+		g_LastCT = 0;
+	if (client == g_LastT)
+		g_LastT = 0;
 }
 
 public Action OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
