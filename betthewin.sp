@@ -128,6 +128,17 @@ public void ShowBetMenu(int client)
 	DisplayMenu(g_PlayerMenus[client], client, MENU_TIME_FOREVER);
 }
 
+public void OnClientDisconnect(int client)
+{
+	if (g_PlayerMenus[client] != INVALID_HANDLE)
+	{
+		CloseHandle(g_PlayerMenus[client]);
+		g_PlayerMenus[client] = INVALID_HANDLE;
+	}
+	g_Bets[client]		= 0;
+	g_BetAmount[client] = DEFAULT_BET_VALUE;
+}
+
 public int BetMenuHandler(Menu menu, MenuAction action, int client, int item)
 {
 	if (action == MenuAction_Select)
