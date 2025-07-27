@@ -24,6 +24,7 @@ public OnPluginStart()
 {
 	HookEvent("player_death", OnPlayerDeath, EventHookMode_Post);
 	HookEvent("round_end", OnRoundEnd, EventHookMode_Post);
+	HookEvent("round_start", OnRoundStart, EventHookMode_Post);
 }
 
 public Action OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
@@ -227,6 +228,24 @@ public Action OnRoundEnd(Event event, const char[] name, bool dontBroadcast)
 		SetEntProp(highestBetter, Prop_Send, "m_iAccount", money + totalLost);
 		PrintToChatAll("%N won the highest bet and received an additional $%d from all lost bets!", highestBetter, totalLost);
 	}
+
+	return Plugin_Continue;
+}
+
+public Action OnRoundStart(Event event, const char[] name, bool dontBroadcast)
+{
+	g_Is1v1 = false;
+
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		if (g_PlayerMenus[i] != INVALID_HANDLE)
+		{
+			CloseHandle(g_PlayerMenus[i]);
+			g_PlayerMenus[i] = INVALID_HANDLE;
+		}
+	}
+
+	ResetBets();
 
 	return Plugin_Continue;
 }
