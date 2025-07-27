@@ -254,7 +254,8 @@ public Action OnRoundEnd(Event event, const char[] name, bool dontBroadcast)
 
 public Action OnRoundStart(Event event, const char[] name, bool dontBroadcast)
 {
-	g_Is1v1 = false;
+	g_Is1v1	 = false;
+	g_LastCT = g_LastT = 0;
 
 	for (int i = 1; i <= MaxClients; i++)
 	{
