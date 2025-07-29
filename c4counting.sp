@@ -1,16 +1,3 @@
-/**
- * [STATUS] Deprecated / WIP
- * [WARNING] This plugin contains coding smells and logic errors.
- *           It is not recommended for production use.
- *
- * [TODO]
- * - Requires full refactor.
- * - Fix logic errors (if needed).
- * - Recall my brain what the f is going on here.
- *
- * Use at your own risk.
- */
-
 #pragma semicolon 1
 
 #include <sourcemod>
