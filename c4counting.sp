@@ -40,7 +40,7 @@ public Action Event_BombBeginDefuse(Event event, char[] name, bool dontBroadcast
     {
         if (IsClientInGame(i))
         {
-            ShowSyncHudText(i, Handle_HUD, "Bomb is being defused!");
+            ShowSyncHudText(i, Handle_HUD, "Someone is defusing the bomb!");
         }
     }
     return Plugin_Continue;
