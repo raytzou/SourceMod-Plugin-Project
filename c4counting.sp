@@ -5,104 +5,131 @@
 Handle Timer_Handler;
 Handle Handle_HUD;
 
-int	   g_c4Counting = 0;
+int    g_c4Counting = 0;
+bool   g_IsCSGO     = false;
 
 public OnPluginStart()
 {
-	Handle_HUD = CreateHudSynchronizer();
-	HookEvent("round_end", Event_RoundEnd);
-	HookEvent("bomb_planted", Event_BombPlanted);
-	HookEvent("bomb_begindefuse", Event_BombBeginDefuse);
-	HookEvent("bomb_abortdefuse", Event_BombAbortDefuse);
-	HookEvent("bomb_defused", Event_BombDefused);
-	HookEvent("bomb_exploded", Event_BombExploded);
+    Handle_HUD = CreateHudSynchronizer();
+    HookEvent("round_end", Event_RoundEnd);
+    HookEvent("bomb_planted", Event_BombPlanted);
+    HookEvent("bomb_begindefuse", Event_BombBeginDefuse);
+    HookEvent("bomb_abortdefuse", Event_BombAbortDefuse);
+    HookEvent("bomb_defused", Event_BombDefused);
+    HookEvent("bomb_exploded", Event_BombExploded);
+    CheckCurrentGameMode();
 }
 
 public Action Event_RoundEnd(Event event, char[] name, bool dontBroadcast)
 {
-	TimerKiller();
-	return Plugin_Continue;
+    TimerKiller();
+    return Plugin_Continue;
 }
 
 public Action Event_BombPlanted(Event event, char[] name, bool dontBroadcast)
 {
-	g_c4Counting  = GetConVarInt(FindConVar("mp_c4timer"));
-	Timer_Handler = CreateTimer(1.0, Timer_BombCounting, _, TIMER_REPEAT);
-	return Plugin_Continue;
+    g_c4Counting  = GetConVarInt(FindConVar("mp_c4timer"));
+    Timer_Handler = CreateTimer(1.0, Timer_BombCounting, _, TIMER_REPEAT);
+    return Plugin_Continue;
 }
 
 public Action Event_BombBeginDefuse(Event event, char[] name, bool dontBroadcast)
 {
-	SetHudTextParams(-1.0, 0.2, 10.0, 255, 0, 0, 255, 0);
-	for (int i = 1; i < MaxClients; i++)
-	{
-		if (IsClientInGame(i))
-		{
-			ShowSyncHudText(i, Handle_HUD, "Bomb is being defused!");
-		}
-	}
-	return Plugin_Continue;
+    SetHudTextParams(-1.0, 0.2, 10.0, 255, 0, 0, 255, 0);
+    for (int i = 1; i < MaxClients; i++)
+    {
+        if (IsClientInGame(i))
+        {
+            ShowSyncHudText(i, Handle_HUD, "Bomb is being defused!");
+        }
+    }
+    return Plugin_Continue;
 }
 
 public Action Event_BombAbortDefuse(Event event, char[] name, bool dontBroadcast)
 {
-	for (int i = 1; i < MaxClients; i++)
-	{
-		if (IsClientInGame(i))
-		{
-			ClearSyncHud(i, Handle_HUD);
-		}
-	}
-	return Plugin_Continue;
+    for (int i = 1; i < MaxClients; i++)
+    {
+        if (IsClientInGame(i))
+        {
+            ClearSyncHud(i, Handle_HUD);
+        }
+    }
+    return Plugin_Continue;
 }
 
 public Action Event_BombDefused(Event event, char[] name, bool dontBroadcast)
 {
-	TimerKiller();
-	PrintHintTextToAll("Bomb has been defused!");
-	for (int i = 1; i < MaxClients; i++)
-	{
-		if (IsClientInGame(i))
-		{
-			ClearSyncHud(i, Handle_HUD);
-		}
-	}
-	// PrintToChatAll("Bomb has been defused!");
-	return Plugin_Continue;
+    TimerKiller();
+    PrintHintTextToAll("Bomb has been defused!");
+    for (int i = 1; i < MaxClients; i++)
+    {
+        if (IsClientInGame(i))
+        {
+            ClearSyncHud(i, Handle_HUD);
+        }
+    }
+    // PrintToChatAll("Bomb has been defused!");
+    return Plugin_Continue;
 }
 
 public Action Event_BombExploded(Event event, char[] name, bool dontBroadcast)
 {
-	TimerKiller();
-	PrintHintTextToAll("Bomb exploded!");
-	for (int i = 1; i < MaxClients; i++)
-	{
-		if (IsClientInGame(i))
-		{
-			ClearSyncHud(i, Handle_HUD);
-		}
-	}
-	// PrintToChatAll("Bomb exploded!");
-	return Plugin_Continue;
+    TimerKiller();
+    PrintHintTextToAll("Bomb exploded!");
+    for (int i = 1; i < MaxClients; i++)
+    {
+        if (IsClientInGame(i))
+        {
+            ClearSyncHud(i, Handle_HUD);
+        }
+    }
+    // PrintToChatAll("Bomb exploded!");
+    return Plugin_Continue;
 }
 
 public Action Timer_BombCounting(Handle timer)
 {
-	PrintHintTextToAll("C4 counting: <font color='#ff0000'>%d</font>", g_c4Counting);
-	g_c4Counting--;
-	if (Timer_Handler != timer)
-	{
-		g_c4Counting  = 0;
-		Timer_Handler = timer;
-	}
-	return Plugin_Continue;
+    if (g_IsCSGO)
+    {
+        PrintHintTextToAll("C4 counting: <font color='#ff0000'>%d</font>", g_c4Counting);
+    }
+    else
+    {
+        PrintHintTextToAll("C4 counting: %d", g_c4Counting);
+    }
+    g_c4Counting--;
+    if (Timer_Handler != timer)
+    {
+        g_c4Counting  = 0;
+        Timer_Handler = timer;
+    }
+    return Plugin_Continue;
 }
 
 void TimerKiller()
 {
-	if (Timer_Handler != null)
-	{
-		KillTimer(Timer_Handler);
-		Timer_Handler = null;
-	}
+    if (Timer_Handler != null)
+    {
+        KillTimer(Timer_Handler);
+        Timer_Handler = null;
+    }
+}
+
+void CheckCurrentGameMode()
+{
+    EngineVersion engine = GetEngineVersion();
+
+    if (engine == Engine_CSGO)
+    {
+        Handle cvar = FindConVar("mp_flashlight");    // CS:CO cvar
+        if (cvar == INVALID_HANDLE)
+        {
+            g_IsCSGO = true;
+        }
+    }
+    else if (engine != Engine_CSS)
+    {
+        PrintToServer("Unsupported game: %d", engine);
+    }
 }
