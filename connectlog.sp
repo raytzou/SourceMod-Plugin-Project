@@ -13,7 +13,7 @@ public Plugin myinfo =
 
 public void OnClientPutInServer(int client)
 {
-    if (IsFakeClient(client)) return;
+    if (!IsValidClient(client) || IsFakeClient(client)) return;
 
     char join_ip[MAX_NAME_LENGTH];
     GetClientIP(client, join_ip, sizeof(join_ip), true);
@@ -29,7 +29,7 @@ public void OnClientPutInServer(int client)
 
 public void OnClientDisconnect(int client)
 {
-    if (IsFakeClient(client)) return;
+    if (!IsClientConnected(client) || IsFakeClient(client)) return;
 
     char leave_ip[MAX_NAME_LENGTH];
     GetClientIP(client, leave_ip, sizeof(leave_ip), true);
@@ -41,4 +41,9 @@ public void OnClientDisconnect(int client)
     GetClientAuthId(client, AuthId_Steam2, steam_id, sizeof(steam_id));
 
     LogMessage("Player %s disconnected with IP: %s, SteamID: %s", client_name, leave_ip, steam_id);
+}
+
+bool IsValidClient(int client)
+{
+    return client > 0 && client <= MaxClients && IsClientInGame(client);
 }
